@@ -28,9 +28,10 @@ public class Sample2
     {
       Console.Write("나: ");
       var message = await Console.In.ReadLineAsync(token);
-      if (message.Equals("/end"))
+      if (message.Equals("/end") || token.IsCancellationRequested)
       {
         Console.WriteLine("Shutting down...");
+        writer.Dispose();
         return;
       }
 
@@ -85,7 +86,7 @@ public class Sample2
     }
     catch (OperationCanceledException)
     {
-      Console.WriteLine("Connection closed. Shutdown...");
+      Console.WriteLine("Connection closed. Shutting down...");
     }
   }
   public static async Task Main(string[] args)
