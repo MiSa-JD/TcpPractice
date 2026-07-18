@@ -12,6 +12,8 @@
       <None Include="Sample.cs" />
       <Compile Remove="Sample1.cs" />
       <None Include="Sample1.cs" />
+      <Compile Remove="Sample2.cs" />
+      <None Include="Sample2.cs" />
     </ItemGroup>
 
 </Project>
