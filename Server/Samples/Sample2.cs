@@ -2,6 +2,7 @@ using System.Collections;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using Server.Types;
 
 namespace Server;
 

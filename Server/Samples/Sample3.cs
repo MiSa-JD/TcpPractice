@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Channels;
+using Server.Types;
 
 namespace Server;
 
@@ -204,21 +205,6 @@ public class Sample3
       {
         Console.WriteLine($"{secondEx}\n잘못된 발송자입니다!");
       }
-    }
-  }
-
-  private async Task HandleClient(ClientInfo client, CancellationToken token)
-  {
-    try
-    {
-      await RunReceiver(client, token);
-    }
-    catch (OperationCanceledException)
-    {
-    }
-    catch (Exception ex)
-    {
-      Console.WriteLine(ex.Message);
     }
   }
   

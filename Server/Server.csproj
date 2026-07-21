@@ -9,13 +9,15 @@
 
     <ItemGroup>
       <Compile Remove="Sample.cs" />
-      <None Include="Sample.cs" />
       <Compile Remove="Sample1.cs" />
-      <None Include="Sample1.cs" />
       <Compile Remove="Sample2.cs" />
-      <None Include="Sample2.cs" />
       <Compile Remove="Sample3.cs" />
-      <None Include="Sample3.cs" />
+      <None Include="Samples\Sample.cs" />
+      <None Include="Samples\Sample1.cs" />
+      <None Include="Samples\Sample2.cs" />
+      <None Include="Samples\Sample3.cs" />
+      <Compile Remove="Samples\Sample4.cs" />
+      <None Include="Samples\Sample4.cs" />
     </ItemGroup>
 
 </Project>
