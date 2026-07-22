@@ -208,6 +208,21 @@ public class Sample3
     }
   }
   
+  
+  private async Task HandleClient(ClientInfo client, CancellationToken token)
+  {
+    try
+    {
+      await RunReceiver(client, token);
+    }
+    catch (OperationCanceledException)
+    {
+    }
+    catch (Exception ex)
+    {
+      Console.WriteLine(ex.Message);
+    }
+  }
   private async Task ManageClients(TcpListener listener, CancellationToken token)
   {
     try
