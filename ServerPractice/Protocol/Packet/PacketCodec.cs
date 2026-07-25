@@ -1,18 +1,14 @@
 using System.Buffers.Binary;
+using Protocol.Packet.Models;
 
 namespace Protocol.Packet;
 
-public class PacketCodec
+public static class PacketCodec
 {
-  private PacketCodec () { }
-  
   public const int headerSize = 6;
-  private static PacketCodec? _manager;
-
-  public static PacketCodec GetManager() { return _manager ??= new PacketCodec(); }
 
   // Byte 스트림용 배열 => PacketInfo
-  public PacketInfo Bytes2Packet(byte[] buffer)
+  public static PacketInfo Bytes2Packet(byte[] buffer)
   {
     if (buffer.Length < headerSize)
       throw new Exception("Not enough header bytes.");
@@ -31,23 +27,23 @@ public class PacketCodec
   }
   
   // 패킷 내용 => PacketInfo
-  public PacketInfo Data2Packet(short type, byte[] payload)
+  public static PacketInfo Data2Packet(PacketType type)
+  {
+    return Data2Packet(type, []);
+  }
+
+  public static PacketInfo Data2Packet(PacketType type, byte[] payload)
   {
     return new PacketInfo(type, payload);
   }
-
-  public PacketInfo Data2Packet(PacketType type, byte[] payload)
-  {
-    return Data2Packet((short)type, payload);
-  }
   
   // PacketInfo => Byte 스트림용 배열
-  public byte[] Packet2Bytes(PacketInfo packet)
+  public static byte[] Packet2Bytes(PacketInfo packet)
   {
     byte[] buffer = new byte[headerSize + packet.payload.Length];
     
     BinaryPrimitives.WriteInt32BigEndian(buffer, packet.payload.Length);
-    BinaryPrimitives.WriteInt16BigEndian(buffer, (short)packet.type);
+    BinaryPrimitives.WriteInt16BigEndian(buffer.AsSpan(4), (short)packet.type);
     packet.payload.CopyTo(buffer.AsSpan(headerSize));
 
     return buffer;

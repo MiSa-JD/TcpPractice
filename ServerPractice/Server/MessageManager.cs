@@ -1,3 +1,7 @@
+using Protocol.Connection;
+using Server.Client;
+using Server.Connection;
+
 namespace Server;
 
 public class MessageManager
@@ -8,12 +12,12 @@ public class MessageManager
   
   public static MessageManager GetManager() { return _manager ??= new MessageManager(); }
   public async Task Broadcast(int? fromId,
-    IEnumerable<ClientInfo> clients, string message)
+    IEnumerable<ConnectionInfo> clients, string message)
   {
     
   }
   
-  public async Task Unicast(ClientInfo src, ClientInfo dest, string message)
+  public async Task Unicast(ConnectionInfo src, ConnectionInfo dest, string message)
   {
     
   }

@@ -1,6 +1,6 @@
 namespace Protocol.SystemMessage;
 
-public enum SystemMessageType
+public enum SystemMessageType: byte
 {
   Info = 1,
   Warn = 2,
