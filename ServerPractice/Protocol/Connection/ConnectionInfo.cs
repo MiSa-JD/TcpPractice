@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using System.Threading.Channels;
 using Protocol.Packet;
 using Protocol.Packet.Models;
+using Protocol.Token;
 
 namespace Protocol.Connection;
 
@@ -45,9 +46,19 @@ public class ConnectionInfo: IAsyncDisposable
     await channel.Writer.WriteAsync(packet);
   }
 
-  public async Task<PacketInfo> ReceiveAsync(CancellationToken token)
+  public async Task<PacketInfo?> ReceiveAsync(CancellationToken token)
   {
-    byte[] buffer = new byte[4];
+    byte[] buffer = new byte[1];
+    int readCount = await stream.ReadAsync(buffer, token);
+    if (readCount == 0)
+    {
+      return null;
+    }
+
+    if (buffer[0] != PacketCodec.MagicByte)
+      throw new Exception("Invalid Magic Byte!");
+    
+    buffer = new byte[4];
     await stream.ReadExactlyAsync(buffer, token);
     int length = BinaryPrimitives.ReadInt32BigEndian(buffer);
     

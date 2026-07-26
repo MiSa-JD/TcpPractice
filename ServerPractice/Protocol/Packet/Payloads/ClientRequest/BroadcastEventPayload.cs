@@ -4,7 +4,7 @@ using Protocol.Packet.Payloads.ServerResponseEvent;
 
 namespace Protocol.Packet.Payloads.ClientRequest;
 
-public record BroadcastRequestPayload(string message) : IPayload
+public record BroadcastEventPayload(string message) : IPayload
 {
   public PacketInfo ToPacket()
   {
@@ -16,6 +16,6 @@ public record BroadcastRequestPayload(string message) : IPayload
   public static void ReadBytes(byte[] bytes, out IPayload payload)
   {
     string msg = Encoding.Unicode.GetString(bytes);
-    payload = new BroadcastRequestPayload(msg);
+    payload = new BroadcastEventPayload(msg);
   }
 }

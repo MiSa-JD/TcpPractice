@@ -16,7 +16,7 @@ public record SystemMessagePayload(SystemMessageType level, string message) : IP
       .CopyTo(payload.AsSpan(1));
     
     return PacketCodec
-      .Data2Packet(PacketType.SystemMessage, payload);
+      .Data2Packet(PacketType.SystemMessageEvent, payload);
   }
 
   public static void ReadBytes(byte[] bytes, out IPayload payload)

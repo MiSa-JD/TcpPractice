@@ -6,19 +6,26 @@ public enum PacketType: short
   BroadcastRequest = 100,
   UnicastRequest = 101,
   StopRequest = 102, // x
-  ExitRequest = 103,
+  DisconnectingRequest = 103,
   RoomListRequest = 104,
   RoomEntranceRequest = 105,
+  RoomExitRequest = 106,
+  
 
   // 서버 응답 / 이벤트
-  SystemMessage = 200,
+  SystemMessageEvent = 200,
   ApplyConnectionResponse = 201,
-  BroadcastResponse = 202,
-  UnicastResponse = 203,
+  BroadcastEvent = 202,
+  UnicastEvent = 203,
   AddedUserInfoEvent = 204,
-  RemovedUserInfo = 205,
-  ApplyEntrance = 206,
-  DenyEntrance = 207,
+  ExitedUserInfoEvent = 205,
+  ApplyEntranceResponse = 206,
+  DenyEntranceResponse = 207,
+  ConnectionFailedResponse = 208,
+  RoomListResponse = 209,
+  UserListResponse = 210,
+  AddRoomEvent = 211,
+  RemoveRoomEvent = 212,
 
   // 서버 요청
   Ping = 300,

@@ -1,19 +1,36 @@
 using System.Runtime.CompilerServices;
 using Protocol.Connection;
+using Protocol.Packet.Models;
 using Protocol.User;
 using Server.Connection;
+using Server.Room;
 
 namespace Server.Client;
 
-public class ClientInfo(ConnectionInfo connection, UserInfo user): IAsyncDisposable
+public class ClientInfo: IAsyncDisposable
 {
-  public ConnectionInfo connection { get; } = connection;
-  public UserInfo user { get; } = user;
-  public int roomid = -1;
-  public int tmpId = -1;
+  public ClientInfo(ConnectionInfo connection, UserInfo user)
+  {
+    this.connection = connection;
+    this.user = user;
+    MoveRoom(RoomManager._instance.lobby);
+  }
+  public ConnectionInfo connection { get; }
+  public UserInfo user { get; }
+
+  public RoomInfo currentRoom { get; private set; }
+    = RoomManager._instance.lobby;
+  public int sessionId = 0;
+  public Task SendAsync(PacketInfo packet) => connection.SendAsync(packet);
   public async ValueTask DisposeAsync()
   {
     Console.WriteLine("Disconnected with " + connection.GetAddress());
     await connection.DisposeAsync();
+  }
+
+  public void MoveRoom(RoomInfo room)
+  {
+    room.AddUser(this);
+    currentRoom = room;
   }
 }

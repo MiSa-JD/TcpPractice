@@ -1,4 +1,6 @@
 using Protocol.Connection;
+using Protocol.Packet.Models;
+using Protocol.Token;
 using Server.Client;
 using Server.Connection;
 
@@ -8,9 +10,8 @@ public class MessageManager
 {
   private MessageManager () { }
   
-  private static MessageManager? _manager;
+  public static MessageManager _instance { get; } = new();
   
-  public static MessageManager GetManager() { return _manager ??= new MessageManager(); }
   public async Task Broadcast(int? fromId,
     IEnumerable<ConnectionInfo> clients, string message)
   {

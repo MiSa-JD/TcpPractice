@@ -5,24 +5,28 @@ namespace Protocol.Packet;
 
 public static class PacketCodec
 {
-  public const int headerSize = 6;
+  private const int headerSize = 7;
+  public const byte MagicByte = 30;
 
   // Byte 스트림용 배열 => PacketInfo
   public static PacketInfo Bytes2Packet(byte[] buffer)
   {
+    if (buffer[0] != MagicByte)
+      throw new Exception("Wrong packet received.");
+    
     if (buffer.Length < headerSize)
       throw new Exception("Not enough header bytes.");
     
-    int length = BinaryPrimitives.ReadInt32BigEndian(buffer.AsSpan(0,4));
+    int length = BinaryPrimitives.ReadInt32BigEndian(buffer.AsSpan(1,4));
     
     if (length < 0)
       throw new Exception("Wrong packet lenght.");
 
-    if (buffer.Length < 4 + 2 + length)
+    if (buffer.Length < headerSize + length)
       throw new Exception("Packet buffer is too small.");
 
     return new PacketInfo(
-      type: BinaryPrimitives.ReadInt16BigEndian(buffer.AsSpan(4,2)),
+      type: BinaryPrimitives.ReadInt16BigEndian(buffer.AsSpan(5,2)),
       payload: buffer.AsSpan(headerSize).ToArray());
   }
   
@@ -41,9 +45,9 @@ public static class PacketCodec
   public static byte[] Packet2Bytes(PacketInfo packet)
   {
     byte[] buffer = new byte[headerSize + packet.payload.Length];
-    
-    BinaryPrimitives.WriteInt32BigEndian(buffer, packet.payload.Length);
-    BinaryPrimitives.WriteInt16BigEndian(buffer.AsSpan(4), (short)packet.type);
+    buffer[0] = MagicByte;
+    BinaryPrimitives.WriteInt32BigEndian(buffer.AsSpan(1), packet.payload.Length);
+    BinaryPrimitives.WriteInt16BigEndian(buffer.AsSpan(5), (short)packet.type);
     packet.payload.CopyTo(buffer.AsSpan(headerSize));
 
     return buffer;
