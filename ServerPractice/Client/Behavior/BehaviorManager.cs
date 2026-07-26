@@ -55,21 +55,32 @@ public class BehaviorManager: IAsyncDisposable
     Console.WriteLine("Listening...");
     while (!TokenManager._instance.token.IsCancellationRequested)
     {
-      PacketInfo packet = await connection.ReceiveAsync(TokenManager._instance.token);
-      
+      var packet = await connection.ReceiveAsync(TokenManager._instance.token);
+      if (packet is null)
+      {
+        Console.WriteLine("Connection closed. Terminating...");
+        return;
+      }
+
       Console.WriteLine("Received Packet: " + packet.type);
       switch (packet.type)
       {
-        case PacketType.SystemMessage: // 200
+        case PacketType.SystemMessageEvent: // 200
           // Console.WriteLine("SYSTEM MESSAGE");
           await enqueue(ProcessSystemMessage(packet.payload));
+          break;
+        case PacketType.ApplyConnectionResponse: // 201
+          await enqueue(ProcessApplyConnectionResponse(packet.payload));
+          break;
+        case PacketType.BroadcastEvent: // 202
+          await enqueue(ProcessBroadcastResponse(packet.payload));
           break;
         case PacketType.UsernameRequest: // 301
           // Console.WriteLine("USERNAME REQUEST");
           await enqueue(ProcessUsernameRequest());
           break;
         default:
-          // Console.WriteLine("UNKNOWN PACKET");
+          Console.WriteLine("UNKNOWN PACKET");
           break;
       }
     }
@@ -107,7 +118,29 @@ public class BehaviorManager: IAsyncDisposable
     // 명령어 처리
     if (input.ToCharArray()[0] == '/')
       return;
-    await connection.SendAsync(new BroadcastRequestPayload(input).ToPacket());
+    await connection.SendAsync(new BroadcastEventPayload(input).ToPacket());
+  }
+
+  private async Task ProcessApplyConnectionResponse(byte[] bytes)
+  {
+    ApplyConnectionResponse.ReadBytes(bytes, out var _body);
+    var body = (ApplyConnectionResponse)_body;
+    
+    Console.WriteLine("내 uuid: " + body.uuid);
+    Console.WriteLine("현재 방 개수: " + body.roomCount);
+    foreach (var room in body.rooms)
+    {
+      Console.WriteLine(" 방 이름: " + room.title);
+      Console.WriteLine("  방 코드: " + room.roomId);
+      Console.WriteLine("  사람 수: " + room.curUserCount);
+    }
+  }
+
+  public async Task ProcessBroadcastResponse(byte[] bytes)
+  {
+    BroadcastResponsePayload.ReadBytes(bytes, out var _body);
+    var body = (BroadcastResponsePayload)_body;
+    Console.WriteLine(body.username + ": " + body.message);
   }
 
   public ValueTask DisposeAsync()
