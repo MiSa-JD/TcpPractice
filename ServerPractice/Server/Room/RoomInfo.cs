@@ -32,18 +32,18 @@ public class RoomInfo
   public bool AddUser(ClientInfo client)
   {
     var result = users.TryAdd(AutoIncrement, client);
-    client.sessionId = AutoIncrement;
+    client.roomUserId = AutoIncrement;
     ++AutoIncrement;
     return result;
   }
 
   public async Task RemoveUser(ClientInfo client)
   {
-    users.TryRemove(client.sessionId, out _);
+    users.TryRemove(client.roomUserId, out _);
     string msg = client.user.username + " left from " + title;
     Console.WriteLine(msg);
     await BroadcastInRoom(client,
-      new BroadcastResponsePayload(client.user.username, msg)
+      new BroadcastEventPayload(client.user.username, msg)
         .ToPacket());
   }
 

@@ -1,18 +1,17 @@
 using Protocol.Packet.Models;
 
-namespace Protocol.Packet.Payloads.ClientRequest;
+namespace Protocol.Packet.Payloads.ServerRequest;
 
-public class RoomListRequest: IPayload
+public class UsernameRequestPayload: IPayload
 {
   public PacketInfo ToPacket()
   {
     return new PacketInfo(
-      PacketType.RoomListRequest,
-      []);
+      PacketType.UsernameRequest);
   }
 
   public static void ReadBytes(byte[] bytes, out IPayload payload)
   {
-    payload = new RoomListRequest();
+    payload = new UsernameRequestPayload();
   }
 }

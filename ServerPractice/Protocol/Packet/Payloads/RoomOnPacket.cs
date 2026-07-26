@@ -6,7 +6,7 @@ namespace Protocol.Packet.Payloads;
 public record RoomOnPacket(
   int roomId,
   string title,
-  int curUserCount)
+  int curUserCount):ISubclassesOfPacket
 {
   public byte[] Turn2Bytes()
   {

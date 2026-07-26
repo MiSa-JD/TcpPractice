@@ -9,6 +9,8 @@ public static class PacketCodec
   public const byte MagicByte = 30;
 
   // Byte 스트림용 배열 => PacketInfo
+  // 패킷 받을 때 전체 패킷의 길이를 계산할 수 없어서 각자가 첫 체크 -> 길이 체크 구조를 띄고 있어서 이거 안 쓰게 되는 듯
+  // 남겨야하나
   public static PacketInfo Bytes2Packet(byte[] buffer)
   {
     if (buffer[0] != MagicByte)

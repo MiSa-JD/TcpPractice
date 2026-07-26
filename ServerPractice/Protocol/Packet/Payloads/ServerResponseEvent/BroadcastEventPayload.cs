@@ -4,9 +4,9 @@ using Protocol.Packet.Models;
 
 namespace Protocol.Packet.Payloads.ServerResponseEvent;
 
-public record BroadcastResponsePayload(string username, string message) : IPayload
+public record BroadcastEventPayload(string username, string message) : IPayload
 {
-  public BroadcastResponsePayload(string username, byte[] messagePayload)
+  public BroadcastEventPayload(string username, byte[] messagePayload)
     : this(username, Encoding.Unicode.GetString(messagePayload)) { }
   public PacketInfo ToPacket()
   {
@@ -17,7 +17,7 @@ public record BroadcastResponsePayload(string username, string message) : IPaylo
     BinaryPrimitives.WriteInt32BigEndian(packet, nameLength);
     Encoding.UTF8.GetBytes(username).CopyTo(packet.AsSpan(4, nameLength));
     
-    BinaryPrimitives.WriteInt32BigEndian(packet.AsSpan(4+nameLength, messageLength), messageLength);
+    BinaryPrimitives.WriteInt32BigEndian(packet.AsSpan(4+nameLength), messageLength);
     Encoding.Unicode.GetBytes(message).CopyTo(packet.AsSpan(4+nameLength+4));
     
     return new PacketInfo(
@@ -36,6 +36,6 @@ public record BroadcastResponsePayload(string username, string message) : IPaylo
     string message = Encoding.Unicode.GetString(
       bytes.AsSpan(4 + nameLength + 4));
     
-    payload = new BroadcastResponsePayload(name, message);
+    payload = new BroadcastEventPayload(name, message);
   }
 }

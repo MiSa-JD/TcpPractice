@@ -3,7 +3,7 @@ using Protocol.Packet.Models;
 
 namespace Protocol.Packet.Payloads.ClientResponse;
 
-public record UsernameResponse(string username): IPayload
+public record UsernameResponsePayload(string username): IPayload
 {
   public PacketInfo ToPacket()
   {
@@ -14,7 +14,7 @@ public record UsernameResponse(string username): IPayload
 
   public static void ReadBytes(byte[] bytes, out IPayload payload)
   {
-    string name = Encoding.Unicode.GetString(bytes);
-    payload = new UsernameResponse(name);
+    string name = Encoding.UTF8.GetString(bytes);
+    payload = new UsernameResponsePayload(name);
   }
 }

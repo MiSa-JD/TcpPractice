@@ -4,7 +4,8 @@
 
 ### 101: UnicastRequest
 > 방에 있는 유저 한 명에게 귓속말
-- Guid receiver
+>> 소통은 방에서 부여된 roomUserId를 기반으로 함
+- int receiverId
 - string message
 
 ### 102: StopRequest

@@ -1,4 +1,4 @@
-1: MagicByte - 30
-2345: PayloadLength
-67: PacketType
-8~: Payload
+0: MagicByte - 30
+1234: PayloadLength
+56: PacketType
+7~: Payload

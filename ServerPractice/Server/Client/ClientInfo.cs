@@ -20,7 +20,7 @@ public class ClientInfo: IAsyncDisposable
 
   public RoomInfo currentRoom { get; private set; }
     = RoomManager._instance.lobby;
-  public int sessionId = 0;
+  public int roomUserId = 0;
   public Task SendAsync(PacketInfo packet) => connection.SendAsync(packet);
   public async ValueTask DisposeAsync()
   {

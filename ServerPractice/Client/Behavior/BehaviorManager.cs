@@ -6,6 +6,7 @@ using Protocol.Packet.Payloads.ClientResponse;
 using Protocol.Packet.Payloads.ServerResponseEvent;
 using Protocol.SystemMessage;
 using Protocol.Token;
+using BroadcastEventPayload = Protocol.Packet.Payloads.ServerResponseEvent.BroadcastEventPayload;
 
 namespace Client.Behavior;
 
@@ -40,7 +41,7 @@ public class BehaviorManager: IAsyncDisposable
           await ProcessDefaultUserInput(connection, input);
           break;
         case InputStatus.nameReq:
-          var packet = new UsernameResponse(input)
+          var packet = new UsernameResponsePayload(input)
             .ToPacket();
           await connection.SendAsync(packet);
           inputStatus = InputStatus.chatting;
@@ -118,13 +119,13 @@ public class BehaviorManager: IAsyncDisposable
     // 명령어 처리
     if (input.ToCharArray()[0] == '/')
       return;
-    await connection.SendAsync(new BroadcastEventPayload(input).ToPacket());
+    await connection.SendAsync(new Protocol.Packet.Payloads.ClientRequest.BroadcastRequestPayload(input).ToPacket());
   }
 
   private async Task ProcessApplyConnectionResponse(byte[] bytes)
   {
-    ApplyConnectionResponse.ReadBytes(bytes, out var _body);
-    var body = (ApplyConnectionResponse)_body;
+    ApplyConnectionResponsePayload.ReadBytes(bytes, out var _body);
+    var body = (ApplyConnectionResponsePayload)_body;
     
     Console.WriteLine("내 uuid: " + body.uuid);
     Console.WriteLine("현재 방 개수: " + body.roomCount);
@@ -138,8 +139,8 @@ public class BehaviorManager: IAsyncDisposable
 
   public async Task ProcessBroadcastResponse(byte[] bytes)
   {
-    BroadcastResponsePayload.ReadBytes(bytes, out var _body);
-    var body = (BroadcastResponsePayload)_body;
+    BroadcastEventPayload.ReadBytes(bytes, out var _body);
+    var body = (BroadcastEventPayload)_body;
     Console.WriteLine(body.username + ": " + body.message);
   }
 

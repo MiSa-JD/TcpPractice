@@ -66,7 +66,7 @@ public class ClientManager: IAsyncDisposable
   private async Task AskUsername(ConnectionInfo connection)
   {
     Console.WriteLine("Asking Username...");
-    await connection.SendAsync(new UsernameRequest().ToPacket());
+    await connection.SendAsync(new UsernameRequestPayload().ToPacket());
     
     string name;
     
@@ -112,7 +112,7 @@ public class ClientManager: IAsyncDisposable
     Console.WriteLine("Username: " + name + " / UUID: " + uuid);
     
     await client.SendAsync(
-      new ApplyConnectionResponse(
+      new ApplyConnectionResponsePayload(
           uuid, RoomManager._instance.GetRoomCount(),
           RoomManager._instance.GetRoomsForPacket())
         .ToPacket());

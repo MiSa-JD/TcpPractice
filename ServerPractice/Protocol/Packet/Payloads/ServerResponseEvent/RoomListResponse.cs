@@ -4,39 +4,31 @@ using Protocol.Packet.Models;
 
 namespace Protocol.Packet.Payloads.ServerResponseEvent;
 
-public record ApplyConnectionResponse(
-  Guid uuid,
-  int roomCount,
-  List<RoomOnPacket> rooms): IPayload
+public record RoomListResponse(int roomCount, List<RoomOnPacket> rooms): IPayload
 {
   public PacketInfo ToPacket()
   {
-    byte[] uuidBytes = uuid.ToByteArray();
-    
     byte[] roomCountBytes = new byte[4];
     BinaryPrimitives.WriteInt32BigEndian(roomCountBytes, roomCount);
     
     byte[] roomsBytes = [];
     foreach (var room in rooms)
       roomsBytes = roomsBytes.Concat(room.Turn2Bytes()).ToArray();
-
-    byte[] payload = uuidBytes
-      .Concat(roomCountBytes)
+    
+    byte[] payload = roomCountBytes
       .Concat(roomsBytes)
       .ToArray();
-    
+
     return new PacketInfo(
-      PacketType.ApplyConnectionResponse,
+      PacketType.RoomListResponse,
       payload);
   }
 
   public static void ReadBytes(byte[] bytes, out IPayload payload)
   {
-    Guid uuid = new Guid(bytes.AsSpan(0, 16));
-    int roomCount = BinaryPrimitives.ReadInt32BigEndian(bytes.AsSpan(16, 4));
     var rooms = new List<RoomOnPacket>();
     
-    for (int i = 16 + 4; i < bytes.Length;)
+    for (int i = 4; i < bytes.Length;)
     {
       int roomId = BinaryPrimitives.ReadInt32BigEndian(bytes.AsSpan(i, 4));
       i += 4;
@@ -48,8 +40,7 @@ public record ApplyConnectionResponse(
       i += 4;
       rooms.Add(new RoomOnPacket(roomId, title, curUserCount));
     }
-
-    payload = new ApplyConnectionResponse(
-      uuid, roomCount, rooms);
+    
+    payload = new RoomListResponse(rooms.Count, rooms);
   }
 }

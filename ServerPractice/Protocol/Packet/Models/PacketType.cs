@@ -21,7 +21,6 @@ public enum PacketType: short
   ExitedUserInfoEvent = 205,
   ApplyEntranceResponse = 206,
   DenyEntranceResponse = 207,
-  ConnectionFailedResponse = 208,
   RoomListResponse = 209,
   UserListResponse = 210,
   AddRoomEvent = 211,

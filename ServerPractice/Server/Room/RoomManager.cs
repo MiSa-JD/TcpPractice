@@ -52,7 +52,7 @@ public class RoomManager
 
   private async Task SendBroadcast(ClientInfo client, PacketInfo receivedPacket)
   {
-    var sendingPacket = new BroadcastResponsePayload(
+    var sendingPacket = new BroadcastEventPayload(
       client.user.username,
       receivedPacket.payload);
     await client.currentRoom.BroadcastInRoom(client, sendingPacket.ToPacket());
