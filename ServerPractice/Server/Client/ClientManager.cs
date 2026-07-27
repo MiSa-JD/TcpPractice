@@ -113,7 +113,7 @@ public class ClientManager: IAsyncDisposable
     
     await client.SendAsync(
       new ApplyConnectionResponsePayload(
-          uuid, RoomManager._instance.GetRoomCount(),
+          uuid,
           RoomManager._instance.GetRoomsForPacket())
         .ToPacket());
     Console.WriteLine("Send uuid and room list to " + client.user.uuid);

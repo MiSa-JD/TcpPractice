@@ -22,15 +22,16 @@ public class ClientInfo: IAsyncDisposable
     = RoomManager._instance.lobby;
   public int roomUserId = 0;
   public Task SendAsync(PacketInfo packet) => connection.SendAsync(packet);
-  public async ValueTask DisposeAsync()
-  {
-    Console.WriteLine("Disconnected with " + connection.GetAddress());
-    await connection.DisposeAsync();
-  }
-
+  
   public void MoveRoom(RoomInfo room)
   {
     room.AddUser(this);
     currentRoom = room;
+  }
+  public async ValueTask DisposeAsync()
+  {
+    Console.WriteLine("Disconnected with " + connection.GetAddress());
+    await currentRoom.RemoveUser(this);
+    await connection.DisposeAsync();
   }
 }

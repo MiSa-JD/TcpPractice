@@ -4,7 +4,7 @@ using Protocol.Packet.Models;
 
 namespace Protocol.Packet.Payloads.ServerResponseEvent;
 
-public record AddedUserInfoEvent(int roomUserId, string username): IPayload
+public record ExitedUserInfoEventPayload(int roomUserId, string username): IPayload
 {
   public PacketInfo ToPacket()
   {
@@ -16,7 +16,7 @@ public record AddedUserInfoEvent(int roomUserId, string username): IPayload
     Encoding.UTF8.GetBytes(username).CopyTo(buffer.AsSpan(4+4));
 
     return new PacketInfo(
-      PacketType.AddedUserInfoEvent,
+      PacketType.ExitedUserInfoEvent,
       buffer);
   }
 
@@ -24,6 +24,6 @@ public record AddedUserInfoEvent(int roomUserId, string username): IPayload
   {
     int roomUserId = BinaryPrimitives.ReadInt32BigEndian(bytes);
     string name = Encoding.UTF8.GetString(bytes.AsSpan(4 + 4));
-    payload = new AddedUserInfoEvent(roomUserId, name);
+    payload = new ExitedUserInfoEventPayload(roomUserId, name);
   }
 }

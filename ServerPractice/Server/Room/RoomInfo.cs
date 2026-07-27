@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
+using System.IO.Pipes;
 using System.Runtime.InteropServices.ComTypes;
 using Protocol.Packet.Models;
 using Protocol.Packet.Payloads;
@@ -29,11 +30,29 @@ public class RoomInfo
     this.title = title;
   }
   
+  public List<RoomUserOnPacket> GetUsersForPacket()
+  {
+    return users.Select(user 
+        => new RoomUserOnPacket(user.Key, user.Value.user.username))
+      .ToList();
+  }
+  
   public bool AddUser(ClientInfo client)
   {
     var result = users.TryAdd(AutoIncrement, client);
-    client.roomUserId = AutoIncrement;
-    ++AutoIncrement;
+    client.roomUserId = AutoIncrement++;
+    client.SendAsync(new ApplyEntranceResponsePayload(
+      GetUsersForPacket())
+      .ToPacket());
+    foreach (var user in users)
+    {
+      if (user.Key == client.roomUserId) continue;
+      
+      user.Value.SendAsync(new AddedUserInfoEventPayload(
+          client.roomUserId, client.user.username)
+        .ToPacket());
+    }
+
     return result;
   }
 
@@ -42,8 +61,9 @@ public class RoomInfo
     users.TryRemove(client.roomUserId, out _);
     string msg = client.user.username + " left from " + title;
     Console.WriteLine(msg);
-    await BroadcastInRoom(client,
-      new BroadcastEventPayload(client.user.username, msg)
+    foreach (var user in users.Values)
+      await user.SendAsync(new ExitedUserInfoEventPayload(
+          client.roomUserId, client.user.username)
         .ToPacket());
   }
 
@@ -76,6 +96,16 @@ public class RoomInfo
     foreach (var user in users.Values)
     {
       if (client.Equals(user)) continue;
+      await user.SendAsync(packet);
+    }
+  }
+
+  // TODO: 여기도 당장 고치셈 ㅇㅇ
+  public async Task UnicastInRoom(string targetName, PacketInfo packet)
+  {
+    foreach (var user in users.Values)
+    {
+      if (!user.user.username.Equals(targetName)) continue;
       await user.SendAsync(packet);
     }
   }

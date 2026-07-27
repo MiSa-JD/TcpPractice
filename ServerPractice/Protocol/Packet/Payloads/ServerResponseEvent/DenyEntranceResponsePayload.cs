@@ -2,7 +2,7 @@ using Protocol.Packet.Models;
 
 namespace Protocol.Packet.Payloads.ServerResponseEvent;
 
-public record DenyEntranceResponse() : IPayload
+public record DenyEntranceResponsePayload() : IPayload
 {
   public PacketInfo ToPacket()
   {
@@ -11,6 +11,6 @@ public record DenyEntranceResponse() : IPayload
 
   public static void ReadBytes(byte[] bytes, out IPayload payload)
   {
-    payload = new DenyEntranceResponse();
+    payload = new DenyEntranceResponsePayload();
   }
 }

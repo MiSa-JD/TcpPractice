@@ -4,16 +4,18 @@ using Protocol.Packet.Models;
 
 namespace Protocol.Packet.Payloads.ServerResponseEvent;
 
-public record UnicastEventPayload(string targetName, string message): IPayload
+public record UnicastEventPayload(string senderName, string message): IPayload
 {
+  public UnicastEventPayload(string username, byte[] messagePayload)
+    : this(username, Encoding.Unicode.GetString(messagePayload)) { }
   public PacketInfo ToPacket()
   {
-    int nameLength = Encoding.UTF8.GetByteCount(targetName);
+    int nameLength = Encoding.UTF8.GetByteCount(senderName);
     int messageLength = Encoding.Unicode.GetByteCount(message);
     
     byte[] buffer = new byte[4+nameLength+4+messageLength];
     BinaryPrimitives.WriteInt32BigEndian(buffer, nameLength);
-    Encoding.UTF8.GetBytes(targetName).CopyTo(buffer.AsSpan(4));
+    Encoding.UTF8.GetBytes(senderName).CopyTo(buffer.AsSpan(4));
     BinaryPrimitives.WriteInt32BigEndian(
       buffer.AsSpan(4+nameLength), messageLength);
     Encoding.Unicode.GetBytes(message)

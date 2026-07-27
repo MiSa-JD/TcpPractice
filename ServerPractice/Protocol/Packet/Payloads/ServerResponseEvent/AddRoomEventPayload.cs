@@ -4,7 +4,7 @@ using Protocol.Packet.Models;
 
 namespace Protocol.Packet.Payloads.ServerResponseEvent;
 
-public record AddRoomEvent(int roomNum, string title): IPayload
+public record AddRoomEventPayload(int roomNum, string title): IPayload
 {
   public PacketInfo ToPacket()
   {
@@ -26,6 +26,6 @@ public record AddRoomEvent(int roomNum, string title): IPayload
     int titleLength = BinaryPrimitives.ReadInt32BigEndian(bytes.AsSpan(4));
     string title = Encoding.Unicode.GetString(bytes.AsSpan(4+4, titleLength));
     
-    payload = new AddRoomEvent(roomNum, title);
+    payload = new AddRoomEventPayload(roomNum, title);
   }
 }

@@ -1,4 +1,5 @@
 using System.Threading.Channels;
+using Client.User;
 using Protocol.Connection;
 using Protocol.Packet.Models;
 using Protocol.Packet.Payloads.ClientRequest;
@@ -74,11 +75,24 @@ public class BehaviorManager: IAsyncDisposable
           await enqueue(ProcessApplyConnectionResponse(packet.payload));
           break;
         case PacketType.BroadcastEvent: // 202
-          await enqueue(ProcessBroadcastResponse(packet.payload));
+          await enqueue(ProcessBroadcastEvent(packet.payload));
+          break;
+        case PacketType.UnicastEvent:
+          await enqueue(ProcessUnicastEvent(packet.payload));
           break;
         case PacketType.UsernameRequest: // 301
           // Console.WriteLine("USERNAME REQUEST");
           await enqueue(ProcessUsernameRequest());
+          break;
+        case PacketType.ApplyEntranceResponse:
+        case PacketType.UserListResponse:
+          await enqueue(ProcessUserListResponse(packet.payload));
+          break;
+        case PacketType.AddedUserInfoEvent:
+          await enqueue(ProcessAddedUserInfoEvent(packet.payload));
+          break;
+        case PacketType.ExitedUserInfoEvent:
+          await enqueue(ProcessExitedUserInfoEvent(packet.payload));
           break;
         default:
           Console.WriteLine("UNKNOWN PACKET");
@@ -118,8 +132,12 @@ public class BehaviorManager: IAsyncDisposable
   {
     // 명령어 처리
     if (input.ToCharArray()[0] == '/')
+    {
+      await CommandManager._instance.ProcessCommandInput(connection, input);
       return;
-    await connection.SendAsync(new Protocol.Packet.Payloads.ClientRequest.BroadcastRequestPayload(input).ToPacket());
+    }
+
+    await connection.SendAsync(new BroadcastRequestPayload(input).ToPacket());
   }
 
   private async Task ProcessApplyConnectionResponse(byte[] bytes)
@@ -128,7 +146,7 @@ public class BehaviorManager: IAsyncDisposable
     var body = (ApplyConnectionResponsePayload)_body;
     
     Console.WriteLine("내 uuid: " + body.uuid);
-    Console.WriteLine("현재 방 개수: " + body.roomCount);
+    Console.WriteLine("현재 방 개수: " + body.rooms.Count);
     foreach (var room in body.rooms)
     {
       Console.WriteLine(" 방 이름: " + room.title);
@@ -137,11 +155,39 @@ public class BehaviorManager: IAsyncDisposable
     }
   }
 
-  public async Task ProcessBroadcastResponse(byte[] bytes)
+  public async Task ProcessUserListResponse(byte[] bytes)
+  {
+    UserListResponsePayload.ReadBytes(bytes, out var _body);
+    var body = (UserListResponsePayload)_body;
+    await UserMapper._instance.InitializeUser(body.users);
+  }
+
+  public async Task ProcessBroadcastEvent(byte[] bytes)
   {
     BroadcastEventPayload.ReadBytes(bytes, out var _body);
     var body = (BroadcastEventPayload)_body;
     Console.WriteLine(body.username + ": " + body.message);
+  }
+
+  public async Task ProcessUnicastEvent(byte[] bytes)
+  {
+    UnicastEventPayload.ReadBytes(bytes, out var _body);
+    var body = (UnicastEventPayload)_body;
+    Console.WriteLine(body.senderName + ": " + body.message);
+  }
+
+  public async Task ProcessAddedUserInfoEvent(byte[] bytes)
+  {
+    AddedUserInfoEventPayload.ReadBytes(bytes, out var _body);
+    var body = (AddedUserInfoEventPayload)_body;
+    await UserMapper._instance.AddUser(body.roomUserId, body.username);
+  }
+  
+  private async Task ProcessExitedUserInfoEvent(byte[] packetPayload)
+  {
+    AddedUserInfoEventPayload.ReadBytes(packetPayload, out var _body);
+    var body = (AddedUserInfoEventPayload)_body;
+    await UserMapper._instance.RemoveUser(body.roomUserId);
   }
 
   public ValueTask DisposeAsync()

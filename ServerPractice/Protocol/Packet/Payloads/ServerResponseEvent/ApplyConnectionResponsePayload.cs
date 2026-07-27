@@ -6,7 +6,6 @@ namespace Protocol.Packet.Payloads.ServerResponseEvent;
 
 public record ApplyConnectionResponsePayload(
   Guid uuid,
-  int roomCount,
   List<RoomOnPacket> rooms): IPayload
 {
   public PacketInfo ToPacket()
@@ -14,7 +13,7 @@ public record ApplyConnectionResponsePayload(
     byte[] uuidBytes = uuid.ToByteArray();
     
     byte[] roomCountBytes = new byte[4];
-    BinaryPrimitives.WriteInt32BigEndian(roomCountBytes, roomCount);
+    BinaryPrimitives.WriteInt32BigEndian(roomCountBytes, rooms.Count);
     
     byte[] roomsBytes = [];
     foreach (var room in rooms)
@@ -50,6 +49,6 @@ public record ApplyConnectionResponsePayload(
     }
 
     payload = new ApplyConnectionResponsePayload(
-      uuid, roomCount, rooms);
+      uuid, rooms);
   }
 }

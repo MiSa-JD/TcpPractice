@@ -4,7 +4,7 @@ using Protocol.Packet.Models;
 
 namespace Protocol.Packet.Payloads.ServerResponseEvent;
 
-public record RoomListResponse(int roomCount, List<RoomOnPacket> rooms): IPayload
+public record RoomListResponsePayload(int roomCount, List<RoomOnPacket> rooms): IPayload
 {
   public PacketInfo ToPacket()
   {
@@ -41,6 +41,6 @@ public record RoomListResponse(int roomCount, List<RoomOnPacket> rooms): IPayloa
       rooms.Add(new RoomOnPacket(roomId, title, curUserCount));
     }
     
-    payload = new RoomListResponse(rooms.Count, rooms);
+    payload = new RoomListResponsePayload(rooms.Count, rooms);
   }
 }

@@ -4,12 +4,12 @@ using Protocol.Packet.Models;
 
 namespace Protocol.Packet.Payloads.ServerResponseEvent;
 
-public record ApplyEntranceResponse(int count, List<RoomUserOnPacket> users) : IPayload
+public record UserListResponsePayload(List<RoomUserOnPacket> users): IPayload
 {
   public PacketInfo ToPacket()
   {
     byte[] countBytes = new byte[4];
-    BinaryPrimitives.WriteInt32BigEndian(countBytes, this.count);
+    BinaryPrimitives.WriteInt32BigEndian(countBytes, users.Count);
     byte[] userBytes = [];
     foreach (var user in users)
       userBytes = userBytes.Concat(user.Turn2Bytes()).ToArray();
@@ -19,13 +19,12 @@ public record ApplyEntranceResponse(int count, List<RoomUserOnPacket> users) : I
       .ToArray();
 
     return new PacketInfo(
-      PacketType.ApplyEntranceResponse,
+      PacketType.UserListResponse,
       payload);
   }
 
   public static void ReadBytes(byte[] bytes, out IPayload payload)
   {
-    int userCount = BinaryPrimitives.ReadInt32BigEndian(bytes);
     var users = new List<RoomUserOnPacket>();
 
     for (int i = 4; i < bytes.Length;)
@@ -39,6 +38,6 @@ public record ApplyEntranceResponse(int count, List<RoomUserOnPacket> users) : I
       users.Add(new RoomUserOnPacket(userRoomId, name));
     }
     
-    payload = new ApplyEntranceResponse(userCount, users);
+    payload = new UserListResponsePayload(users);
   }
 }

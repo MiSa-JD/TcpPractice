@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Protocol.Packet.Models;
 using Protocol.Packet.Payloads;
+using Protocol.Packet.Payloads.ClientRequest;
 using Protocol.Packet.Payloads.ServerResponseEvent;
 using Protocol.Token;
 using Server.Client;
@@ -13,7 +14,7 @@ public class RoomManager
   public static RoomManager _instance { get; } = new();
 
   public RoomInfo lobby { get; } = new("Lobby");
-  public ConcurrentDictionary<int, RoomInfo> rooms { get; } = new();
+  private ConcurrentDictionary<int, RoomInfo> rooms { get; } = new();
   public int AutoIncrease { get; private set; } = 0;
 
   public List<RoomOnPacket> GetRoomsForPacket()
@@ -31,7 +32,6 @@ public class RoomManager
       var receivedPacket = await client.connection.ReceiveAsync(TokenManager._instance.token);
       if (receivedPacket is null)
       {
-        client.currentRoom.RemoveUser(client);
         await ClientManager._instance.RemoveClient(client.user.uuid);
         return;
       }
@@ -43,6 +43,7 @@ public class RoomManager
           await SendBroadcast(client, receivedPacket);
           break;
         case PacketType.UnicastRequest:
+          await SendUnicast(client, receivedPacket);
           break;
         case PacketType.RoomEntranceRequest:
           break;
@@ -60,6 +61,13 @@ public class RoomManager
 
   private async Task SendUnicast(ClientInfo client, PacketInfo receivedPacket)
   {
-    
+    UnicastRequestPayload.ReadBytes(receivedPacket.payload, out var _payload);
+    var payload = (UnicastRequestPayload)_payload;
+    // TODO: Broadcast, Unicast 이름 기반 -> roomUserId 기반으로 구조 바꿀 때 당장 바꿔야 함 
+    var sendingPacket = new UnicastEventPayload(
+      client.user.username,
+      payload.message).ToPacket();
+    await client.currentRoom.UnicastInRoom(
+      client.currentRoom.GetUserList()[payload.receiverId].username, sendingPacket);
   }
 }
