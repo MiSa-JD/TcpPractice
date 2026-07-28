@@ -1,5 +1,4 @@
 using System.Buffers.Binary;
-using System.Text;
 using Protocol.Packet.Models;
 
 namespace Protocol.Packet.Payloads.ServerResponseEvent;

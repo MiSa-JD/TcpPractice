@@ -1,7 +1,4 @@
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
-using System.IO.Pipes;
-using System.Runtime.InteropServices.ComTypes;
 using Protocol.Packet.Models;
 using Protocol.Packet.Payloads;
 using Protocol.Packet.Payloads.ServerResponseEvent;
@@ -15,13 +12,14 @@ public class RoomInfo
   private ClientInfo? host;
   private readonly ConcurrentDictionary<int, ClientInfo> users = new();
   private int AutoIncrement = 0;
+  private readonly Lock incrementLock = new();
   public string title { get; }
 
   public RoomInfo(ClientInfo client, string title)
   {
     host = client;
     this.title = title;
-    AddUser(client);
+    _ = AddUser(client);
   }
 
   public RoomInfo(string title)
@@ -37,18 +35,22 @@ public class RoomInfo
       .ToList();
   }
   
-  public bool AddUser(ClientInfo client)
+  public async Task<bool> AddUser(ClientInfo client)
   {
-    var result = users.TryAdd(AutoIncrement, client);
-    client.roomUserId = AutoIncrement++;
-    client.SendAsync(new ApplyEntranceResponsePayload(
+    bool result;
+    lock (incrementLock)
+    {
+      result = users.TryAdd(AutoIncrement, client);
+      client.roomUserId = AutoIncrement++;
+    }
+    await client.SendAsync(new ApplyEntranceResponsePayload(
       GetUsersForPacket())
       .ToPacket());
     foreach (var user in users)
     {
       if (user.Key == client.roomUserId) continue;
       
-      user.Value.SendAsync(new AddedUserInfoEventPayload(
+      await user.Value.SendAsync(new AddedUserInfoEventPayload(
           client.roomUserId, client.user.username)
         .ToPacket());
     }
@@ -72,7 +74,7 @@ public class RoomInfo
     await RemoveUser(client);
     client.MoveRoom(RoomManager._instance.lobby);
     if (host != null && client.Equals(host))
-      foreach (var user in users)
+      foreach (var _ in users)
         await UserLeft(client);
   }
 

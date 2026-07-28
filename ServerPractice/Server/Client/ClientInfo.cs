@@ -1,8 +1,6 @@
-using System.Runtime.CompilerServices;
 using Protocol.Connection;
 using Protocol.Packet.Models;
 using Protocol.User;
-using Server.Connection;
 using Server.Room;
 
 namespace Server.Client;
@@ -23,9 +21,9 @@ public class ClientInfo: IAsyncDisposable
   public int roomUserId = 0;
   public Task SendAsync(PacketInfo packet) => connection.SendAsync(packet);
   
-  public void MoveRoom(RoomInfo room)
+  public async Task MoveRoom(RoomInfo room)
   {
-    room.AddUser(this);
+    await room.AddUser(this);
     currentRoom = room;
   }
   public async ValueTask DisposeAsync()

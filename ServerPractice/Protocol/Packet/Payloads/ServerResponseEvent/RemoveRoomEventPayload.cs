@@ -23,8 +23,7 @@ public record RemoveRoomEventPayload(int roomNum, string title): IPayload
   public static void ReadBytes(byte[] bytes, out IPayload payload)
   {
     int roomNum = BinaryPrimitives.ReadInt32BigEndian(bytes);
-    int titleLength = BinaryPrimitives.ReadInt32BigEndian(bytes.AsSpan(4));
-    string title = Encoding.Unicode.GetString(bytes.AsSpan(4+4, titleLength));
+    string title = Encoding.Unicode.GetString(bytes.AsSpan(4+4));
     
     payload = new RemoveRoomEventPayload(roomNum, title);
   }

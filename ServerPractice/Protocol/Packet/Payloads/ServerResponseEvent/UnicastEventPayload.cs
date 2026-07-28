@@ -4,22 +4,20 @@ using Protocol.Packet.Models;
 
 namespace Protocol.Packet.Payloads.ServerResponseEvent;
 
-public record UnicastEventPayload(string senderName, string message): IPayload
+public record UnicastEventPayload(int senderId, string message): IPayload
 {
-  public UnicastEventPayload(string username, byte[] messagePayload)
-    : this(username, Encoding.Unicode.GetString(messagePayload)) { }
+  public UnicastEventPayload(int senderId, byte[] messagePayload)
+    : this(senderId, Encoding.Unicode.GetString(messagePayload)) { }
   public PacketInfo ToPacket()
   {
-    int nameLength = Encoding.UTF8.GetByteCount(senderName);
     int messageLength = Encoding.Unicode.GetByteCount(message);
     
-    byte[] buffer = new byte[4+nameLength+4+messageLength];
-    BinaryPrimitives.WriteInt32BigEndian(buffer, nameLength);
-    Encoding.UTF8.GetBytes(senderName).CopyTo(buffer.AsSpan(4));
+    byte[] buffer = new byte[4+4+messageLength];
+    BinaryPrimitives.WriteInt32BigEndian(buffer, senderId);
     BinaryPrimitives.WriteInt32BigEndian(
-      buffer.AsSpan(4+nameLength), messageLength);
+      buffer.AsSpan(4), messageLength);
     Encoding.Unicode.GetBytes(message)
-      .CopyTo(buffer.AsSpan(4+nameLength+4));
+      .CopyTo(buffer.AsSpan(4+4));
 
     return new PacketInfo(
       PacketType.UnicastEvent,
@@ -28,10 +26,9 @@ public record UnicastEventPayload(string senderName, string message): IPayload
 
   public static void ReadBytes(byte[] bytes, out IPayload payload)
   {
-    int nameLength = BinaryPrimitives.ReadInt32BigEndian(bytes);
-    string name = Encoding.UTF8.GetString(bytes.AsSpan(4, nameLength));
-    string message = Encoding.Unicode.GetString(bytes.AsSpan(4 + nameLength + 4));
+    int senderId = BinaryPrimitives.ReadInt32BigEndian(bytes);
+    string message = Encoding.Unicode.GetString(bytes.AsSpan(4 + 4));
 
-    payload = new UnicastEventPayload(name, message);
+    payload = new UnicastEventPayload(senderId, message);
   }
 }

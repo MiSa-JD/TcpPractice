@@ -1,6 +1,5 @@
 using System.Text;
 using Protocol.Packet.Models;
-using Protocol.Packet.Payloads.ServerResponseEvent;
 
 namespace Protocol.Packet.Payloads.ClientRequest;
 

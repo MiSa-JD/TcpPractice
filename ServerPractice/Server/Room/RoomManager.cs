@@ -54,7 +54,7 @@ public class RoomManager
   private async Task SendBroadcast(ClientInfo client, PacketInfo receivedPacket)
   {
     var sendingPacket = new BroadcastEventPayload(
-      client.user.username,
+      client.roomUserId,
       receivedPacket.payload);
     await client.currentRoom.BroadcastInRoom(client, sendingPacket.ToPacket());
   }
@@ -65,7 +65,7 @@ public class RoomManager
     var payload = (UnicastRequestPayload)_payload;
     // TODO: Broadcast, Unicast 이름 기반 -> roomUserId 기반으로 구조 바꿀 때 당장 바꿔야 함 
     var sendingPacket = new UnicastEventPayload(
-      client.user.username,
+      client.roomUserId,
       payload.message).ToPacket();
     await client.currentRoom.UnicastInRoom(
       client.currentRoom.GetUserList()[payload.receiverId].username, sendingPacket);

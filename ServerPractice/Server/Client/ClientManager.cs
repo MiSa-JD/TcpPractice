@@ -30,7 +30,15 @@ public class ClientManager: IAsyncDisposable
   {
     await foreach (var task in tasks.Reader.ReadAllAsync(TokenManager._instance.token))
     {
-      await task;
+      try
+      {
+        await task;
+      }
+      catch (OperationCanceledException) { }
+      catch (Exception e)
+      {
+        Console.WriteLine(e);
+      }
     }
   }
   

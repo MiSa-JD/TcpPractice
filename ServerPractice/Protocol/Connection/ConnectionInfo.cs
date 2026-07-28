@@ -3,13 +3,12 @@ using System.Net.Sockets;
 using System.Threading.Channels;
 using Protocol.Packet;
 using Protocol.Packet.Models;
-using Protocol.Token;
 
 namespace Protocol.Connection;
 
 public class ConnectionInfo: IAsyncDisposable
 {
-  public readonly Stream stream;
+  private readonly Stream stream;
   private readonly TcpClient client;
   private readonly Channel<PacketInfo> channel = Channel.CreateBounded<PacketInfo>(
     new BoundedChannelOptions(32)

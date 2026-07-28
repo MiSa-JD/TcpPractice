@@ -23,7 +23,6 @@ public record UnicastRequestPayload(int receiverId, string message) : IPayload
   public static void ReadBytes(byte[] bytes, out IPayload payload)
   {
     int roomUserId = BinaryPrimitives.ReadInt32BigEndian(bytes);
-    int messageLength = BinaryPrimitives.ReadInt32BigEndian(bytes.AsSpan(4, 4));
     string message = Encoding.Unicode.GetString(bytes.AsSpan(4+4));
     
     payload = new UnicastRequestPayload(roomUserId, message);

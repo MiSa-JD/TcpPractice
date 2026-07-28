@@ -26,7 +26,15 @@ public class BehaviorManager: IAsyncDisposable
   {
     await foreach(var task in taskChannel.Reader.ReadAllAsync(token))
     {
-      await task;
+      try
+      {
+        await task;
+      }
+      catch (OperationCanceledException) { }
+      catch (Exception e)
+      {
+        Console.WriteLine(e);
+      }
     }
   }
  
@@ -166,14 +174,18 @@ public class BehaviorManager: IAsyncDisposable
   {
     BroadcastEventPayload.ReadBytes(bytes, out var _body);
     var body = (BroadcastEventPayload)_body;
-    Console.WriteLine(body.username + ": " + body.message);
+    Console.WriteLine(
+      UserMapper._instance.GetUserByRoomUserId(body.senderId) 
+      + ": " + body.message);
   }
 
   public async Task ProcessUnicastEvent(byte[] bytes)
   {
     UnicastEventPayload.ReadBytes(bytes, out var _body);
     var body = (UnicastEventPayload)_body;
-    Console.WriteLine(body.senderName + ": " + body.message);
+    Console.WriteLine(
+      UserMapper._instance.GetUserByRoomUserId(body.senderId)
+      + ": " + body.message);
   }
 
   public async Task ProcessAddedUserInfoEvent(byte[] bytes)

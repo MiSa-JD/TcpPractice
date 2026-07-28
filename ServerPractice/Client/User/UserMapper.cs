@@ -31,6 +31,11 @@ public class UserMapper
     throw new KeyNotFoundException();
   }
 
+  public string GetUserByRoomUserId(int roomUserId)
+  {
+    return users[roomUserId];
+  }
+
   public void PrintUserList()
   {
     Console.WriteLine("현재 인원 수: " + users.Count);

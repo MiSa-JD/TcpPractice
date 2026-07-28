@@ -32,7 +32,6 @@ public record ApplyConnectionResponsePayload(
   public static void ReadBytes(byte[] bytes, out IPayload payload)
   {
     Guid uuid = new Guid(bytes.AsSpan(0, 16));
-    int roomCount = BinaryPrimitives.ReadInt32BigEndian(bytes.AsSpan(16, 4));
     var rooms = new List<RoomOnPacket>();
     
     for (int i = 16 + 4; i < bytes.Length;)

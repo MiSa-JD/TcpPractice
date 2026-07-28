@@ -4,21 +4,19 @@ using Protocol.Packet.Models;
 
 namespace Protocol.Packet.Payloads.ServerResponseEvent;
 
-public record BroadcastEventPayload(string username, string message) : IPayload
+public record BroadcastEventPayload(int senderId, string message) : IPayload
 {
-  public BroadcastEventPayload(string username, byte[] messagePayload)
-    : this(username, Encoding.Unicode.GetString(messagePayload)) { }
+  public BroadcastEventPayload(int senderId, byte[] messagePayload)
+    : this(senderId, Encoding.Unicode.GetString(messagePayload)) { }
   public PacketInfo ToPacket()
   {
-    int nameLength = Encoding.UTF8.GetByteCount(username);
     int messageLength = Encoding.Unicode.GetByteCount(message);
     
-    byte[] packet = new byte[4 + nameLength + 4 + messageLength];
-    BinaryPrimitives.WriteInt32BigEndian(packet, nameLength);
-    Encoding.UTF8.GetBytes(username).CopyTo(packet.AsSpan(4, nameLength));
+    byte[] packet = new byte[4 + 4 + messageLength];
+    BinaryPrimitives.WriteInt32BigEndian(packet, senderId);
     
-    BinaryPrimitives.WriteInt32BigEndian(packet.AsSpan(4+nameLength), messageLength);
-    Encoding.Unicode.GetBytes(message).CopyTo(packet.AsSpan(4+nameLength+4));
+    BinaryPrimitives.WriteInt32BigEndian(packet.AsSpan(4), messageLength);
+    Encoding.Unicode.GetBytes(message).CopyTo(packet.AsSpan(4+4));
     
     return new PacketInfo(
       PacketType.BroadcastEvent,
@@ -27,15 +25,12 @@ public record BroadcastEventPayload(string username, string message) : IPayload
 
   public static void ReadBytes(byte[] bytes, out IPayload payload)
   {
-    int nameLength = BinaryPrimitives.ReadInt32BigEndian(
-      bytes.AsSpan(0, 4));
-    string name = Encoding.UTF8.GetString(
-      bytes.AsSpan(4, nameLength));
+    int senderId = BinaryPrimitives.ReadInt32BigEndian(bytes);
     int messageLength = BinaryPrimitives.ReadInt32BigEndian(
-      bytes.AsSpan(4 + nameLength));
+      bytes.AsSpan(4));
     string message = Encoding.Unicode.GetString(
-      bytes.AsSpan(4 + nameLength + 4));
+      bytes.AsSpan(4 + 4));
     
-    payload = new BroadcastEventPayload(name, message);
+    payload = new BroadcastEventPayload(senderId, message);
   }
 }
