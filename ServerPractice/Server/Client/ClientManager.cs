@@ -9,7 +9,6 @@ using Protocol.Packet.Payloads.ServerRequest;
 using Protocol.SystemMessage;
 using Protocol.Token;
 using Protocol.User;
-using Server.Connection;
 using Server.Room;
 using Server.User;
 
@@ -20,7 +19,10 @@ public class ClientManager: IAsyncDisposable
   private ClientManager() { runTask = Run(); }
   public static ClientManager _instance { get; } = new();
 
-  public ConcurrentDictionary<Guid, ClientInfo> clients { get; } = [];
+  private ConcurrentDictionary<Guid, ClientInfo> clients { get; } = [];
+  private ConcurrentDictionary<int, ConnectionInfo> connections { get; } = [];
+  private static int AutoIncrement;
+  private const int maxConnection = 5;
   private readonly Channel<Task> tasks = Channel.CreateUnbounded<Task>();
   private ValueTask enqueue(Task task, CancellationToken token) => tasks.Writer.WriteAsync(task, token);
 
@@ -45,30 +47,30 @@ public class ClientManager: IAsyncDisposable
   public async Task ManageClients(TcpListener listener)
   {
     CancellationToken token = TokenManager._instance.token;
-    ConnectionManager connectionM = ConnectionManager._instance;
     
     var tcpClient = await listener.AcceptTcpClientAsync(token);
 
     // 연결 성공
-    var client = new ConnectionInfo(tcpClient, token);
+    var connection = new ConnectionInfo(tcpClient, token);
+    connection.connectionId = Interlocked.Increment(ref AutoIncrement);
     
     // 최대 연결 풀 초과 시
-    if (!connectionM.TryAdd(client))
+    if (!TryAddConnection(connection))
     {
       var tmp = new SystemMessagePayload(
         SystemMessageType.Error,
-        "Something went wrong!");
+        "Too Much Connections!");
       
-      await client.SendAsync(tmp.ToPacket());
-      await client.DisposeAsync();
+      await connection.SendAsync(tmp.ToPacket());
+      await connection.DisposeAsync();
       return;
     }
 
     var msg = new SystemMessagePayload(SystemMessageType.Info, "Connected.");
-    await client.SendAsync(msg.ToPacket());
+    await connection.SendAsync(msg.ToPacket());
     
     Console.WriteLine($"Client {tcpClient.Client.RemoteEndPoint} connected");
-    await enqueue(AskUsername(client), TokenManager._instance.token);
+    await enqueue(AskUsername(connection), TokenManager._instance.token);
   }
 
   private async Task AskUsername(ConnectionInfo connection)
@@ -133,14 +135,25 @@ public class ClientManager: IAsyncDisposable
     clients.TryRemove(uuid, out var target);
     if (target == null)
       return;
+    connections.TryRemove(target.connection.connectionId, out _);
+    
     await target.DisposeAsync();
+  }
+
+  private bool TryAddConnection(ConnectionInfo connection)
+  {
+    return connections.Count < maxConnection 
+           && connections.TryAdd(connection.connectionId, connection);
   }
 
   public async ValueTask DisposeAsync()
   {
     runTask.Dispose();
     foreach (var client in clients.Values)
+    {
       await client.DisposeAsync();
+    }
+
     clients.Clear();
   }
 }

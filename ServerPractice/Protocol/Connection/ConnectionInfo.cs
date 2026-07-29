@@ -14,9 +14,11 @@ public class ConnectionInfo: IAsyncDisposable
     new BoundedChannelOptions(32)
     {
       SingleReader = true,
-      SingleWriter = true,
-      FullMode = BoundedChannelFullMode.DropOldest
+      SingleWriter = false,
+      FullMode = BoundedChannelFullMode.Wait
     });
+  public const int maxPacketLength = 4096;
+  public int connectionId;
   private readonly Task sendingTask;
   
   public ConnectionInfo(TcpClient client, CancellationToken token)
@@ -42,6 +44,12 @@ public class ConnectionInfo: IAsyncDisposable
   // 패킷을 전송 큐에 저장
   public async Task SendAsync(PacketInfo packet)
   {
+    if (packet.payload.Length > maxPacketLength)
+    {
+      Console.WriteLine("Too long packets!");
+      return;
+    }
+
     await channel.Writer.WriteAsync(packet);
   }
 
@@ -60,7 +68,17 @@ public class ConnectionInfo: IAsyncDisposable
     buffer = new byte[4];
     await stream.ReadExactlyAsync(buffer, token);
     int length = BinaryPrimitives.ReadInt32BigEndian(buffer);
-    
+
+    if (length < 0)
+    {
+      Console.WriteLine("Wrong Packet Length!");
+      return null;
+    }
+    if (length > maxPacketLength)
+    {
+      Console.WriteLine("Too Long Packet!");
+      return null;
+    }
     buffer = new byte[2];
     await stream.ReadExactlyAsync(buffer, token);
     PacketType type = (PacketType)BinaryPrimitives.ReadInt16BigEndian(buffer);

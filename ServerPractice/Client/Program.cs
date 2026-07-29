@@ -30,7 +30,6 @@ internal class Program
     {
       await Task.WhenAny(sender, receiver);
       await TokenManager._instance.DisposeAsync();
-      await Task.WhenAll(sender, receiver);
     }
     catch (OperationCanceledException) { }
   }
